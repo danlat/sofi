@@ -20,6 +20,9 @@ function init() {
 
             load()
         }
+        else if (command.name == "javascript") {
+            eval(command.code)
+        }
         else if (command.name == "append") {
             $(command.selector).append(command.html)
         }

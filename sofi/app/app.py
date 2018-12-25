@@ -344,3 +344,12 @@ class Sofi():
         """Set the property for elements matching this selector. Properties are special attributes like 'checked' or 'value'."""
 
         self.dispatch({'name': 'property', 'selector': selector, 'property': property, 'value': value}, client)
+
+    def javascript(self, code: str, client=None):
+        """Execute the javascript code on the client side."""
+
+        self.dispatch({
+            'name': 'javascript',
+            'code': code,
+            },
+            client)
