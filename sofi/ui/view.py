@@ -8,7 +8,8 @@ class View(Element):
     def __init__(self, title=None, cl=None, style=None,
                        bscss="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css",
                        bsjs="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js",
-                       jquery="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"):
+                       jquery="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js",
+                       css=None):
         self._children = list()
 
         if title is None:
@@ -22,12 +23,22 @@ class View(Element):
         self.bootstrapcss = bscss
         self.bootstrapjs = bsjs
         self.jquery = jquery
+        self.css = css
 
     def __repr__(self):
         return "<View>"
 
     def __str__(self):
-        head = [ "<title>", self.title, "</title>", "<link href=\"", self.bootstrapcss, "\" rel=\"stylesheet\">" ]
+        head = []
+        head.append('<meta charset="utf-8">'
+                    '<meta http-equiv="X-UA-Compatible" content="IE=edge">'
+                    '<meta name="viewport" content="width=device-width, initial-scale=1">')
+
+        head.append(f'<title>{self.title}</title>'
+                    f'<link href="{self.bootstrapcss}" rel="stylesheet">')
+        if self.css is not None:
+            for css in self.css:
+                head.append(f'<link href="{css}" rel="stylesheet">')
         body = []
 
         for child in self._children:
