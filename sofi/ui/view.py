@@ -9,7 +9,8 @@ class View(Element):
                        bscss="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css",
                        bsjs="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js",
                        jquery="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js",
-                       css=None):
+                       css=None,
+                       inlinecss=''):
         self._children = list()
 
         if title is None:
@@ -24,6 +25,7 @@ class View(Element):
         self.bootstrapjs = bsjs
         self.jquery = jquery
         self.css = css
+        self.inlinecss = inlinecss
 
     def __repr__(self):
         return "<View>"
@@ -39,6 +41,10 @@ class View(Element):
         if self.css is not None:
             for css in self.css:
                 head.append(f'<link href="{css}" rel="stylesheet">')
+        if self.inlinecss:
+            head.append('<style>')
+            head.append(self.inlinecss)
+            head.append('</style>')
         body = []
 
         for child in self._children:
