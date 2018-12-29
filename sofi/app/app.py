@@ -15,6 +15,17 @@ import websockets
 from threading import Thread
 
 
+async def handler_wrapper(handler, *args):
+    """Without this, registered callbacks that raise an exception just
+    silently fail since Sofi schedules with run_coroutine_threadsafe and never
+    awaits the Future
+    """
+    try:
+        await handler(*args)
+    except Exception as exc:
+        logging.exception('Exception in callback')
+
+
 class Sofi():
 
     def __init__(self, singleclient=True, background=False, hostname="127.0.0.1", address="0.0.0.0", port=9000):
@@ -116,16 +127,11 @@ class Sofi():
 
         command = json.dumps(command)
 
-        if self.singleclient:
-            # asyncio.gather(self.clients[0].send(command), loop=self.loop)
-            asyncio.run_coroutine_threadsafe(self.clients[0].send(command), self.loop)
-
-        else:
-            if client is None:
-                asyncio.run_coroutine_threadsafe(asyncio.gather(*[c.send(command) for c in self.clients], loop=self.loop))
-            else:
-                # asyncio.gather(client.send(command), loop=self.loop)
+        if client is None:
+            for client in self.clients:
                 asyncio.run_coroutine_threadsafe(client.send(command), self.loop)
+        else:
+            asyncio.run_coroutine_threadsafe(client.send(command), self.loop)
 
     def start(self, desktop=True, browser=True):
         """Start the application"""
@@ -186,6 +192,12 @@ class Sofi():
     def register(self, event, callback, selector=None, client=None):
         """Register an event callback"""
 
+        if not asyncio.iscoroutinefunction(callback):
+            raise ValueError(f'Callback {callback} must be a coroutine function')
+
+        if not callable(callback):
+            raise ValueError(f'Callback {callback} must be callable')
+
         # If we didn't know of this event, add it to the handler mappings
         if event not in self.handlers:
             self.handlers[event] = {'_': set()}
@@ -243,13 +255,11 @@ class Sofi():
 
                 if key in self.handlers[eventtype]:
                     for handler in list(self.handlers[eventtype][key]):
-                        if callable(handler):
-                            asyncio.run_coroutine_threadsafe(handler(event), self.loop)
+                        asyncio.run_coroutine_threadsafe(handler_wrapper(handler, event), self.loop)
 
             # Check for global handler
             for handler in list(self.handlers[eventtype]['_']):
-                if callable(handler):
-                    asyncio.run_coroutine_threadsafe(handler(event), self.loop)
+                asyncio.run_coroutine_threadsafe(handler_wrapper(handler, event), self.loop)
 
     async def _waitforresponse(self, request_id, item):
         """Wait for a response to a specific request"""
