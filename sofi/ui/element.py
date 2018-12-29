@@ -63,3 +63,5 @@ class Element(object):
 
         if item is not None:
             self._children.append(item)
+
+        return self
