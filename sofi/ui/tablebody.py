@@ -2,6 +2,7 @@ from .element import Element
 from .tablerow import TableRow
 from .tablecell import TableCell
 
+
 class TableBody(Element):
     """Implements the <tbody> tag"""
 
@@ -15,7 +16,7 @@ class TableBody(Element):
             if isinstance(item, Element):
                 tr.addelement(item)
             else:
-                tr.addelement(TableCell(item))
+                tr.addelement(TableCell(str(item)))
 
         self.addelement(tr)
 
@@ -25,7 +26,7 @@ class TableBody(Element):
         return "<TableBody>"
 
     def __str__(self):
-        output = [ "<tbody" ]
+        output = ["<tbody"]
 
         if self.ident:
             output.append(" id=\"")

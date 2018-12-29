@@ -2,6 +2,7 @@ from .element import Element
 from .tablerow import TableRow
 from .tablecell import TableCell
 
+
 class TableHead(Element):
     """Implements the <thead> tag"""
 
@@ -15,8 +16,7 @@ class TableHead(Element):
             if isinstance(item, Element):
                 tr.addelement(item)
             else:
-                tr.addelement(TableCell(item, head=True))
-
+                tr.addelement(TableCell(str(item), head=True))
 
         self.addelement(tr)
 
@@ -26,7 +26,7 @@ class TableHead(Element):
         return "<TableHead>"
 
     def __str__(self):
-        output = [ "<thead" ]
+        output = ["<thead"]
 
         if self.ident:
             output.append(" id=\"")
