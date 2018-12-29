@@ -15,7 +15,7 @@ import websockets
 from threading import Thread
 
 
-async def handler_wrapper(handler, *args):
+async def _handler_wrapper(handler, *args):
     """Without this, registered callbacks that raise an exception just
     silently fail since Sofi schedules with run_coroutine_threadsafe and never
     awaits the Future
@@ -255,11 +255,11 @@ class Sofi():
 
                 if key in self.handlers[eventtype]:
                     for handler in list(self.handlers[eventtype][key]):
-                        asyncio.run_coroutine_threadsafe(handler_wrapper(handler, event), self.loop)
+                        asyncio.run_coroutine_threadsafe(_handler_wrapper(handler, event), self.loop)
 
             # Check for global handler
             for handler in list(self.handlers[eventtype]['_']):
-                asyncio.run_coroutine_threadsafe(handler_wrapper(handler, event), self.loop)
+                asyncio.run_coroutine_threadsafe(_handler_wrapper(handler, event), self.loop)
 
     async def _waitforresponse(self, request_id, item):
         """Wait for a response to a specific request"""
