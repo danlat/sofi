@@ -35,6 +35,7 @@ class Sofi():
         self.port = port
         self.background = background
         self.thread = None
+        self.logger = logging.getLogger('sofi')
 
         # Event handlers
         self.handlers = {
@@ -69,18 +70,18 @@ class Sofi():
     def __run_loop(self):
         # Set event loop
         if self.background:
-            logging.info("Running in background")
+            self.logger.info("Running in background")
             asyncio.set_event_loop(self.loop)
 
         # Create the loop server
         self.server = self.loop.run_until_complete(websockets.serve(self.handler, self.address, self.port))
 
         try:
-            logging.info("Starting server")
+            self.logger.info("Starting server")
             self.loop.run_forever()
 
         except KeyboardInterrupt:
-            logging.info("Keyboard Interrupt received.")
+            self.logger.info("Keyboard Interrupt received.")
 
         finally:
             # Tell any clients that we're closing
@@ -91,10 +92,10 @@ class Sofi():
             asyncio.gather(*asyncio.Task.all_tasks()).cancel()
             self.loop.stop()
 
-            logging.info("Cancelling pending tasks...")
+            self.logger.info("Cancelling pending tasks...")
             self.loop.run_forever()
 
-            logging.info("Stopping Server...")
+            self.logger.info("Stopping Server...")
             self.loop.close()
 
     async def handler(self, websocket, path):
@@ -104,18 +105,18 @@ class Sofi():
             websocket.close(reason="Only one client allowed in single-client mode.")
 
         self.clients.append(websocket)
-        logging.info(f"New client connected from {websocket.remote_address}")
+        self.logger.info(f"New client connected from {websocket.remote_address}")
 
         async for msg in websocket:
             try:
-                logging.debug(f"Message received: {msg}")
+                self.logger.debug(f"Message received: {msg}")
                 body = json.loads(msg)
 
                 if 'event' in body:
                     await self.process(websocket, body)
 
             except Exception as e:
-                logging.exception(f"Exception when handling message {msg} from client {websocket.remote_address}")
+                self.logger.exception(f"Exception when handling message {msg} from client {websocket.remote_address}")
 
         self.clients.remove(websocket)
 
@@ -270,7 +271,7 @@ class Sofi():
         resp = self.requests[request_id]
         del self.requests[request_id]
 
-        logging.debug(f"Response received: {resp}")
+        self.logger.debug(f"Response received: {resp}")
 
         return resp.get(item, None)
 
@@ -316,7 +317,7 @@ class Sofi():
     async def gettext(self, selector, client=None):
         """Get the text for elements matching the selector."""
 
-        logging.info("TEXT")
+        self.logger.info("TEXT")
         request_id = time.time()
         self.dispatch({'name': 'text', 'request_id': request_id, 'selector': selector, 'text': None}, client)
         return await self._waitforresponse(request_id, 'text')
